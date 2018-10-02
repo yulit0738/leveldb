@@ -365,7 +365,11 @@ void SkipList<Key,Comparator>::Insert(const Key& key) {
     // NoBarrier_SetNext() suffices since we will add a barrier when
     // we publish a pointer to "x" in prev[i].
     x->NoBarrier_SetNext(i, prev[i]->NoBarrier_Next(i));
-    prev[i]->SetNext(i, x);
+    //prev[i]->SetNext(i, x);
+  }
+  prev[0]->SetNext(0, x);
+  for(int i = 1; i < height; ++i) {
+	prev[i]->NoBarrier_SetNext(i, x);
   }
 }
 

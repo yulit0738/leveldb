@@ -1221,25 +1221,30 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* my_batch) {
     // into mem_.
     {
       mutex_.Unlock();
+	  #ifdef CRAST
       status = log_->AddRecord(WriteBatchInternal::Contents(updates));
       bool sync_error = false;
-      if (status.ok() && options.sync) {
+      if (status.ok()) {
         status = logfile_->Sync();
         if (!status.ok()) {
           sync_error = true;
         }
       }
+	  #endif
       if (status.ok()) {
         status = WriteBatchInternal::InsertInto(updates, mem_);
       }
       mutex_.Lock();
+	  #ifdef CRAST
       if (sync_error) {
         // The state of the log file is indeterminate: the log record we
         // just added may or may not show up when the DB is re-opened.
         // So we force the DB into a mode where all future writes fail.
         RecordBackgroundError(status);
       }
+	  #endif
     }
+	  
     if (updates == tmp_batch_) tmp_batch_->Clear();
 
     versions_->SetLastSequence(last_sequence);

@@ -801,17 +801,20 @@ class Benchmark {
     ReadOptions options;
     std::string value;
     int found = 0;
+	int64_t bytes = 0;
     for (int i = 0; i < reads_; i++) {
       char key[100];
       const int k = thread->rand.Next() % FLAGS_num;
       snprintf(key, sizeof(key), "%016d", k);
       if (db_->Get(options, key, &value).ok()) {
         found++;
+		bytes += sizeof(key) + value.size();
       }
       thread->stats.FinishedSingleOp();
     }
     char msg[100];
     snprintf(msg, sizeof(msg), "(%d of %d found)", found, num_);
+	thread->stats.AddBytes(bytes);
     thread->stats.AddMessage(msg);
   }
 
